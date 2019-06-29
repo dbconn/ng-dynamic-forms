@@ -26,7 +26,11 @@ export const DisabledMatcher: DynamicFormControlMatcher = {
 
     match: MATCH_DISABLED,
     opposingMatch: MATCH_ENABLED,
-    onChange(hasMatch: boolean, model: DynamicFormControlModel): void {
+    onChange(hasMatch: boolean, model: DynamicFormControlModel, control: FormControl): void {
+        // sd Beim disablen leeren wir das Control
+        if (hasMatch) {
+            control.setValue(null);
+        }
         model.disabledUpdates.next(hasMatch);
     }
 };

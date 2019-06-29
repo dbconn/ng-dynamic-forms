@@ -1,5 +1,5 @@
 import { Inject, Injectable, Injector, Optional } from "@angular/core";
-import { FormControl, FormGroup } from "@angular/forms";
+import {AbstractControl, FormControl, FormGroup} from '@angular/forms';
 import { DynamicFormControlModel } from "../model/dynamic-form-control.model";
 import { DYNAMIC_MATCHERS, DynamicFormControlMatcher } from "./dynamic-form-relation.matchers";
 import {
@@ -31,6 +31,24 @@ export class DynamicFormRelationService {
         return control;
     }
 
+    // sd Eigentlich wäre hier eine rekursive Lösung gut aber uns reichen zur Zeit die Controls unter den Tabs
+    findControlInOtherTabs( currentTab: FormGroup, condition: DynamicFormControlCondition ) {
+        //  if( currentTab.parent && currentTab.parent instanceof FormGroup) {
+        const pGroup =  currentTab.parent as FormGroup;
+        let control = pGroup.get(condition.id) as FormControl;
+        if (!control) {
+            Object.keys(pGroup.controls).forEach(k => {
+                // eigentlich wollen wir die Schleife verlassen wenn wir das Control gefunden haben ...
+                // break wirft einen ts Fehler ???
+                if (!control) {
+                    const child =  pGroup.get( k ) as AbstractControl;
+                    control = child.get( condition.id ) as FormControl;
+                }
+            });
+        }
+        return control;
+    }
+
     getRelatedFormControls(model: DynamicFormControlModel, group: FormGroup): { [id: string]: FormControl } | never {
 
         const controls: { [id: string]: FormControl } = {};
@@ -41,7 +59,13 @@ export class DynamicFormRelationService {
                 throw new Error(`FormControl ${model.id} cannot depend on itself`);
             }
 
-            const control = this.getRelatedFormControl(group, condition);
+            let control = this.getRelatedFormControl(group, condition);
+
+            // sd  Ergänzung wir wollen auch auf Controls aus anderen Tabs verweisen können.
+            // Wir können dies relativ entspannt tun, da unsere Control Ids unique sind.
+            if ( !control && group.parent && group.parent instanceof FormGroup) {
+                control = this.findControlInOtherTabs( group, condition);
+            }
 
             if (control && !controls.hasOwnProperty(model.id)) {
                 controls[condition.id] = control;
@@ -62,6 +86,8 @@ export class DynamicFormRelationService {
         return relation.when.reduce((hasAlreadyMatched: boolean, condition: DynamicFormControlCondition, index: number) => {
 
             const relatedControl = this.getRelatedFormControl(group, condition);
+
+            // todo related Control in anderem tab suchen mit findControlInOtherTabs
 
             if (relatedControl && relation.match === matcher.match) {
 
