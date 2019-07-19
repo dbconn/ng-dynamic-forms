@@ -21,9 +21,12 @@ export class DynamicFormRelationService {
 
     getRelatedFormControl(group: FormGroup, condition: DynamicFormControlCondition): FormControl | never {
 
-        const control = condition.rootPath ?
+        let control = condition.rootPath ?
             group.root.get(condition.rootPath) as FormControl : group.get(condition.id) as FormControl;
-
+        // // sd tabübergreifende lösung
+        if (control === null) {
+            control = this.findControlInOtherTabs(group, condition);
+        }
         if (control === null) {
             throw new Error(`No related form control with id ${condition.id} could be found`);
         }
@@ -36,11 +39,11 @@ export class DynamicFormRelationService {
         //  if( currentTab.parent && currentTab.parent instanceof FormGroup) {
         const pGroup =  currentTab.parent as FormGroup;
         let control = pGroup.get(condition.id) as FormControl;
-        if (!control) {
+        if (control === null) {
             Object.keys(pGroup.controls).forEach(k => {
                 // eigentlich wollen wir die Schleife verlassen wenn wir das Control gefunden haben ...
                 // break wirft einen ts Fehler ???
-                if (!control) {
+                if (control === null) {
                     const child =  pGroup.get( k ) as AbstractControl;
                     control = child.get( condition.id ) as FormControl;
                 }
@@ -59,13 +62,13 @@ export class DynamicFormRelationService {
                 throw new Error(`FormControl ${model.id} cannot depend on itself`);
             }
 
-            let control = this.getRelatedFormControl(group, condition);
+            const control = this.getRelatedFormControl(group, condition);
 
-            // sd  Ergänzung wir wollen auch auf Controls aus anderen Tabs verweisen können.
-            // Wir können dies relativ entspannt tun, da unsere Control Ids unique sind.
-            if ( !control && group.parent && group.parent instanceof FormGroup) {
-                control = this.findControlInOtherTabs( group, condition);
-            }
+            // // sd  Ergänzung wir wollen auch auf Controls aus anderen Tabs verweisen können.
+            // // Wir können dies relativ entspannt tun, da unsere Control Ids unique sind.
+            // if ( !control && group.parent && group.parent instanceof FormGroup) {
+            //     control = this.findControlInOtherTabs( group, condition);
+            // }
 
             if (control && !controls.hasOwnProperty(model.id)) {
                 controls[condition.id] = control;
