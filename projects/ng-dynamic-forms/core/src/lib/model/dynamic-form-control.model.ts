@@ -58,6 +58,8 @@ export abstract class DynamicFormControlModel implements DynamicPathable {
         this.relations = Array.isArray(config.relations) ? config.relations : [];
         this.updateOn = isString(config.updateOn) ? config.updateOn : null;
         this.validators = config.validators || null;
+        this.anforderungsstufe = config.anforderungsstufe;
+        this.helpId = config.helpId;
 
         this.disabled = isBoolean(config.disabled) ? config.disabled : false;
         this.disabledUpdates = new Subject<boolean>();
