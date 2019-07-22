@@ -42,6 +42,11 @@ import { DynamicFormValidationService } from "../service/dynamic-form-validation
 import { DynamicFormComponentService } from "../service/dynamic-form-component.service";
 import { isString } from "../utils/core.utils";
 import { DynamicFormRelationService } from "../service/dynamic-form-relation.service";
+import {
+    DYNAMIC_FORM_CONTROL_TYPE_LAYOUT_GROUP,
+    DynamicFormLayoutGroupModel
+} from "../model/form-layout-group/dynamic-form-layout-group.model";
+
 
 export abstract class DynamicFormControlContainerComponent implements OnChanges, OnDestroy {
 
@@ -90,7 +95,7 @@ export abstract class DynamicFormControlContainerComponent implements OnChanges,
 
         if (groupChange || modelChange) {
 
-            if (this.model) {
+            if (this.model && !(this.model.type === DYNAMIC_FORM_CONTROL_TYPE_LAYOUT_GROUP)) {
 
                 this.unsubscribe();
 

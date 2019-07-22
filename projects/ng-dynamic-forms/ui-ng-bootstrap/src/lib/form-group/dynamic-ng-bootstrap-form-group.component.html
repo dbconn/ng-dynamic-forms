@@ -1,6 +1,5 @@
 <ng-container [formGroup]="group">
-
-    <div role="group" [formGroupName]="model.id" [id]="elementId" [ngClass]="getClass('element','control')">
+    <div *ngIf="!model.layoutType" role="group" [formGroupName]="model.id" [id]="elementId" [ngClass]="getClass('element','control')">
 
         <dynamic-ng-bootstrap-form-control *ngFor="let _model of model.group"
                                            [asBootstrapFormGroup]="true"
@@ -16,5 +15,42 @@
                                            (focus)="onFocus($event)"
                                            (ngbEvent)="onCustomEvent($event, null, true)"></dynamic-ng-bootstrap-form-control>
     </div>
+<!--    ==='tabset'-->
+    <ngb-tabset name="tabset" *ngIf="model.layoutType"
+                [dynamicId]=" model.id"
+                [destroyOnHide]="false"
+                [formGroupName]="model.id"
+                [ngClass]="[getClass('element', 'host', model), getClass('grid', 'host', model)]"
+                (tabChange)="onCustomEvent($event,'tabEvent')">
+        <ng-container *ngFor="let tabModel of model.tabs">
+
+            <ngb-tab  *ngIf="tabModel.layoutType"
+                      [id] = "tabModel.id"
+                      [dynamicId]="tabModel.id"
+                      [ngClass]="[getClass('element', 'host', tabModel), getClass('grid', 'host', tabModel)]">
+
+
+
+                <ng-template  ngbTabTitle>
+                    <b [innerHTML]="tabModel.legend"></b>
+                </ng-template>
+                <ng-template ngbTabContent>
+                    <dynamic-ng-bootstrap-form-control *ngFor="let _model of tabModel.layoutGroup"
+                                                       [asBootstrapFormGroup]="true"
+                                                       [group]="tabModel.angularFormGroup"
+                                                       [hidden]="_model.hidden"
+                                                       [layout]="layout"
+                                                       [model]="_model"
+                                                       [ngClass]="[getClass('element', 'host', _model), getClass('grid', 'host', _model),
+                                                       getClass('element','children'), getClass('grid','children')]"
+                                                       (blur)="onBlur($event)"
+                                                       (change)="onChange($event)"
+                                                       (focus)="onFocus($event)"
+                                                       (ngbEvent)="onCustomEvent($event, null, true)">
+                    </dynamic-ng-bootstrap-form-control>
+                </ng-template>
+            </ngb-tab>
+        </ng-container>
+    </ngb-tabset>
 
 </ng-container>

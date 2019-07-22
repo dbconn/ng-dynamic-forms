@@ -47,11 +47,14 @@ import { DynamicPathable } from "../model/misc/dynamic-form-control-path.model";
 import { DynamicValidatorsConfig } from "../model/misc/dynamic-form-control-validation.model";
 import { maskFromString, parseReviver } from "../utils/json.utils";
 import { isString } from "../utils/core.utils";
+import { DYNAMIC_FORM_CONTROL_TYPE_LAYOUT_GROUP, DynamicFormLayoutGroupModel } from "../model/form-layout-group/dynamic-form-layout-group.model";
 
 @Injectable({
     providedIn: "root"
 })
 export class DynamicFormService {
+
+    private dynamicFormLayoutGroupModels: DynamicFormLayoutGroupModel[]=[];
 
     constructor(private validationService: DynamicFormValidationService) {}
 
@@ -112,10 +115,18 @@ export class DynamicFormService {
                     let groupModel = model as DynamicFormGroupModel,
                         groupOptions = this.createAbstractControlOptions(groupModel.validators,
                             groupModel.asyncValidators, groupModel.updateOn);
-
-                    controls[model.id] = this.createFormGroup(groupModel.group, groupOptions, groupModel);
+                    // controls[model.id] = this.createFormGroup(groupModel.group, groupOptions, groupModel);
+                    if(groupModel.tabs.length === 0){
+                        controls[model.id] = this.createFormGroup(groupModel.group, groupOptions, groupModel);
+                    } else {
+                        controls[model.id] = this.createFormGroup(groupModel.tabs, groupOptions, groupModel);
+                    }
                     break;
-
+                case DYNAMIC_FORM_CONTROL_TYPE_LAYOUT_GROUP:
+                    if ( parent ) {
+                        this.addLayoutGroups(model, controls, parent);
+                    }
+                    break;
                 default:
 
                     let controlModel = model as DynamicFormValueControlModel<any>,
@@ -126,10 +137,60 @@ export class DynamicFormService {
                     controls[model.id] = new FormControl(controlState, controlOptions);
             }
         });
+        let angularFormGroup: FormGroup= new FormGroup(controls, options);
+            // this.formBuilder.group(formGroup, extra);
+        this.dynamicFormLayoutGroupModels.forEach((dfl: DynamicFormLayoutGroupModel)=>{
+            if ( dfl.parent && dfl.parent.id) {
+                let a: AbstractControl = <AbstractControl> angularFormGroup.get(dfl.parent.id);
+                if (a instanceof FormGroup) dfl.angularFormGroup = a;
+                // todo ?pop dfl
+            }
 
-        return new FormGroup(controls, options);
+        });
+        return angularFormGroup;
     }
 
+    // todo überarbeiten
+    private addLayoutGroups(model: DynamicFormControlModel, formGroup: { [p: string]: AbstractControl },parent: DynamicPathable) {
+        model.parent=parent;
+        let formLayoutGroupModel = model as DynamicFormLayoutGroupModel;
+        this.dynamicFormLayoutGroupModels.push(formLayoutGroupModel);
+        formLayoutGroupModel.layoutGroup.forEach((dfc: DynamicFormControlModel) => {
+            dfc.parent = parent;
+            if(dfc.type===DYNAMIC_FORM_CONTROL_TYPE_LAYOUT_GROUP){
+                this.addLayoutGroups(dfc,formGroup,parent);
+            }else if (dfc.type === DYNAMIC_FORM_CONTROL_TYPE_GROUP || dfc.type === DYNAMIC_FORM_CONTROL_TYPE_CHECKBOX_GROUP) {
+
+                let groupModel = dfc as DynamicFormGroupModel,
+                    groupOptions = this.createAbstractControlOptions(groupModel.validators,
+                        groupModel.asyncValidators, groupModel.updateOn);
+
+                formGroup[dfc.id] = this.createFormGroup(groupModel.group, groupOptions, groupModel);
+
+                // let formGroupModel = dfc as DynamicFormGroupModel,
+                //     extra = this.createExtra(formGroupModel.validator, formGroupModel.asyncValidator);
+                //
+                // formGroup[dfc.id] = this.createFormGroup(formGroupModel.group, extra, formGroupModel);
+
+            }else {
+
+                let controlModel = dfc as DynamicFormValueControlModel<any>,
+                    controlState = {value: controlModel.value, disabled: controlModel.disabled},
+                    controlOptions = this.createAbstractControlOptions(controlModel.validators,
+                        controlModel.asyncValidators, controlModel.updateOn);
+
+                formGroup[controlModel.id]  = new FormControl(controlState, controlOptions);
+
+                // let formControlModel = dfc as DynamicFormValueControlModel<DynamicFormControlValue>;
+                // formGroup[formControlModel.id] = new FormControl(
+                //     {
+                //         value: formControlModel.value,
+                //         disabled: formControlModel.disabled
+                //     },
+                // );
+            }
+        });
+    }
 
     getPathSegment(model: DynamicPathable): string {
         return model instanceof DynamicFormArrayGroupModel ? model.index.toString() : (model as DynamicFormControlModel).id;
@@ -294,7 +355,12 @@ export class DynamicFormService {
                     }
 
                     if (controlModel instanceof DynamicFormGroupModel) {
+                        findByIdFn(id, (controlModel as DynamicFormGroupModel).tabs);
                         findByIdFn(id, (controlModel as DynamicFormGroupModel).group);
+                    }
+                    if (controlModel instanceof DynamicFormLayoutGroupModel ) {
+                        findByIdFn(id, (controlModel as DynamicFormLayoutGroupModel).layoutGroup);
+                        findByIdFn(id, (controlModel as DynamicFormLayoutGroupModel).group);
                     }
                 }
             };

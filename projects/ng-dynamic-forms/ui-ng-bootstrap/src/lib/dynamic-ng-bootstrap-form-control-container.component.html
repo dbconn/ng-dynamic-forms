@@ -5,7 +5,9 @@
     <label *ngIf="!isCheckbox && hasLabel"
            [for]="elementId"
            [innerHTML]="model.label"
-           [ngClass]="[getClass('element', 'label'), getClass('grid', 'label')]"></label>
+           [ngClass]="[getClass('element', 'label'), getClass('grid', 'label')]"
+           (click)="onCustomEvent({customEvent: $event, customEventType: 'onShowHilfe'})">
+    </label>
 
     <ng-container *ngTemplateOutlet="startTemplate?.templateRef; context: model"></ng-container>
 
@@ -13,10 +15,20 @@
 
         <ng-container #componentViewContainer></ng-container>
 
-        <small *ngIf="hasHint" class="text-muted" [innerHTML]="hint" [ngClass]="getClass('element', 'hint')"></small>
+        <small *ngIf="hasHint && false" class="text-muted" [innerHTML]="hint" [ngClass]="getClass('element', 'hint')"></small>
 
-        <div *ngIf="showErrorMessages" [ngClass]="[getClass('element', 'errors'), getClass('grid', 'errors')]">
-            <small *ngFor="let message of errorMessages" class="invalid-feedback d-block">{{ message }}</small>
+<!--        <div *ngIf="showErrorMessages" [ngClass]="[getClass('element', 'errors'), getClass('grid', 'errors')]">-->
+<!--            <small *ngFor="let message of errorMessages" class="invalid-feedback d-block">{{ message }}</small>-->
+<!--        </div>-->
+
+
+        <div *ngIf="showErrorMessages && model.type !== 'LAYOUT_GROUP' " [ngClass]="[getClass('element', 'errors'), getClass('grid', 'errors')]">
+            <!--<small *ngFor="let message of errorMessages" class="invalid-feedback d-block">{{ message }}</small>-->
+            <ng-container *ngFor="let message of errorMessages" >
+                <small class="invalid-feedback d-block" [innerHTML] = "message">
+                    dummy
+                </small>
+            </ng-container>
         </div>
 
     </div>

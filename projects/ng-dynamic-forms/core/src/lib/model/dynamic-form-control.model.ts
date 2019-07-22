@@ -22,6 +22,9 @@ export interface DynamicFormControlModelConfig {
     relations?: DynamicFormControlRelation[];
     updateOn?: FormHooks;
     validators?: DynamicValidatorsConfig;
+    tooltip?: string;
+    helpId?: string;
+    anforderungsstufe?: string;
 }
 
 export abstract class DynamicFormControlModel implements DynamicPathable {
@@ -43,6 +46,10 @@ export abstract class DynamicFormControlModel implements DynamicPathable {
     @serializable() validators: DynamicValidatorsConfig | null;
 
     abstract readonly type: string;
+
+    @serializable() tooltip: string | null;
+    @serializable() helpId: string | null;
+    @serializable() anforderungsstufe: string | null;
 
     protected constructor(config: DynamicFormControlModelConfig, layout: DynamicFormControlLayout | null = null) {
 

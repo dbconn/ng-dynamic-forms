@@ -18,6 +18,7 @@ import {
     DYNAMIC_FORM_CONTROL_TYPE_DATEPICKER,
     DYNAMIC_FORM_CONTROL_TYPE_GROUP,
     DYNAMIC_FORM_CONTROL_TYPE_INPUT,
+    DYNAMIC_FORM_CONTROL_TYPE_LAYOUT_GROUP,
     DYNAMIC_FORM_CONTROL_TYPE_RADIO_GROUP,
     DYNAMIC_FORM_CONTROL_TYPE_RATING,
     DYNAMIC_FORM_CONTROL_TYPE_SELECT,
@@ -30,11 +31,15 @@ import {
     DynamicFormControlEvent,
     DynamicFormControlModel,
     DynamicFormComponentService,
+    DynamicFormGroupModel,
     DynamicFormLayout,
+    DynamicFormLayoutGroupModel,
     DynamicFormLayoutService,
     DynamicFormRelationService,
     DynamicFormValidationService,
-    DynamicTemplateDirective
+    DynamicTemplateDirective,
+    LayoutGroupLayoutType,
+    GroupLayoutType
 } from "@ng-dynamic-forms/core";
 import { DynamicNGBootstrapCheckboxComponent } from "./checkbox/dynamic-ng-bootstrap-checkbox.component";
 import { DynamicNGBootstrapCheckboxGroupComponent } from "./checkbox-group/dynamic-ng-bootstrap-checkbox-group.component";
@@ -48,7 +53,8 @@ import { DynamicNGBootstrapRatingComponent } from "./rating/dynamic-ng-bootstrap
 import { DynamicNGBootstrapSelectComponent } from "./select/dynamic-ng-bootstrap-select.component";
 import { DynamicNGBootstrapTextAreaComponent } from "./textarea/dynamic-ng-bootstrap-textarea.component";
 import { DynamicNGBootstrapTimePickerComponent } from "./timepicker/dynamic-ng-bootstrap-timepicker.component";
-
+import { DynamicNgBootstrapFormGroupCardLayoutComponent } from "./form-group-card-layout/dynamic-ng-bootstrap-form-group-card-layout.component";
+import { DynamicNgBootstrapFormLayoutGroupComponent } from "./form-layout-group/dynamic-ng-bootstrap-form-layout-group.component";
 @Component({
     selector: "dynamic-ng-bootstrap-form-control",
     templateUrl: "./dynamic-ng-bootstrap-form-control-container.component.html"
@@ -103,8 +109,8 @@ export function ngBootstrapUIFormControlMapFn(model: DynamicFormControlModel): T
 
             return datePickerModel.inline ? DynamicNGBootstrapCalendarComponent : DynamicNGBootstrapDatePickerComponent;
 
-        case DYNAMIC_FORM_CONTROL_TYPE_GROUP:
-            return DynamicNGBootstrapFormGroupComponent;
+        // case DYNAMIC_FORM_CONTROL_TYPE_GROUP:
+        //     return DynamicNGBootstrapFormGroupComponent;
 
         case DYNAMIC_FORM_CONTROL_TYPE_INPUT:
             return DynamicNGBootstrapInputComponent;
@@ -123,7 +129,30 @@ export function ngBootstrapUIFormControlMapFn(model: DynamicFormControlModel): T
 
         case DYNAMIC_FORM_CONTROL_TYPE_TIMEPICKER:
             return DynamicNGBootstrapTimePickerComponent;
+        case DYNAMIC_FORM_CONTROL_TYPE_LAYOUT_GROUP:
+            let g: DynamicFormLayoutGroupModel= <DynamicFormLayoutGroupModel>model;
+            if(g.layoutType===LayoutGroupLayoutType.card  ||
+                g.layoutType===LayoutGroupLayoutType.tab  ||
+                g.layoutType===LayoutGroupLayoutType.card_with_title ||
+                g.layoutType===LayoutGroupLayoutType.card_with_header){
+                return DynamicNgBootstrapFormLayoutGroupComponent;
+            }else {
+                console.error("No valid LayoutGroupLayoutTyp: " + g.layoutType);
+            }
 
+        case DYNAMIC_FORM_CONTROL_TYPE_GROUP:
+            let g2: DynamicFormGroupModel= <DynamicFormGroupModel>model;
+
+                if(g2.layoutType===GroupLayoutType.card ||
+                    g2.layoutType===GroupLayoutType.card_with_title ||
+                    g2.layoutType===GroupLayoutType.card_with_header){
+                return DynamicNgBootstrapFormGroupCardLayoutComponent;
+            }else if(g2.layoutType===GroupLayoutType.tabset ) {
+                    console.log("XXXXXXXXXXXXXXXXXX TABSET");
+                    return DynamicNGBootstrapFormGroupComponent;
+                } else {
+                return DynamicNGBootstrapFormGroupComponent;
+            }
         default:
             return null;
     }

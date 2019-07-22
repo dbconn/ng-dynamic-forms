@@ -44,6 +44,8 @@ export * from "./model/misc/dynamic-form-control-path.model";
 export * from "./model/misc/dynamic-form-control-relation.model";
 export * from "./model/misc/dynamic-form-control-validation.model";
 
+export * from "./model/form-layout-group/dynamic-form-layout-group.model";
+
 export * from "./service/dynamic-form.service";
 export * from "./service/dynamic-form-component.service";
 export * from "./service/dynamic-form-layout.service";
